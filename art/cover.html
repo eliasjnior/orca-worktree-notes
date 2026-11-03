@@ -5,13 +5,16 @@ html, body { margin: 0; }
 body { font-family: Geist, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 </style>
 <style>code { font-family: ui-monospace, Menlo, monospace; font-size: .9em; color:#e4e4e7; }</style></head>
+<!-- Orca shows covers at 16:10 on cards, but its plugin page caps the height at 256px and crops
+     the middle: keep everything that matters inside the central band (about y 380 to 620). -->
 <body style="width:1600px;height:1000px;overflow:hidden;background:#0d0d0f radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.2px) 0 0/26px 26px;color:#fafafa;display:flex;align-items:center;justify-content:space-between;padding:0 150px 0 140px">
-<div style="max-width:720px">
-<div style="width:112px;height:112px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fbbf24,#b45309);border-radius:24px">
-<svg aria-hidden="true" width="62" height="62" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></div>
-<h1 style="font-size:84px;line-height:1.05;margin:44px 0 18px;font-weight:700;letter-spacing:-.02em">Notes</h1>
-<p style="font-size:34px;line-height:1.3;color:#a1a1aa;margin:0 0 44px">Notion-style Markdown notes for each worktree.</p>
-<ul style="list-style:none;padding:0;margin:0;font-size:27px;color:#d4d4d8"><li style="display:flex;gap:14px;align-items:baseline;margin:0 0 14px"><span style="color:#fbbf24;font-weight:700">✓</span><span>Markdown styled as you type</span></li><li style="display:flex;gap:14px;align-items:baseline;margin:0 0 14px"><span style="color:#fbbf24;font-weight:700">✓</span><span>Separate notes per worktree</span></li><li style="display:flex;gap:14px;align-items:baseline;margin:0 0 14px"><span style="color:#fbbf24;font-weight:700">✓</span><span>Saved as Markdown, never in your repo</span></li></ul>
+<div style="max-width:820px">
+<div style="display:flex;align-items:center;gap:36px">
+<div style="width:120px;height:120px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fbbf24,#b45309);border-radius:27px">
+<svg aria-hidden="true" width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></div>
+<h1 style="font-size:104px;line-height:1;margin:0;font-weight:700;letter-spacing:-.025em">Notes</h1>
+</div>
+<p style="font-size:36px;line-height:1.3;color:#a1a1aa;margin:34px 0 0;white-space:nowrap">Notion-style Markdown notes for each worktree.</p>
 </div>
 <div style="width:380px;height:700px;border-radius:14px;overflow:hidden;background:#171717;border:1px solid #2a2a2e;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.02)">
 <img src="../plugins/worktree-notes/docs/screenshot.png" width="380" style="display:block" alt=""></div>
