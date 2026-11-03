@@ -16,17 +16,11 @@ separate notes for each worktree.
 
 ## Install
 
-macOS:
+| Plugin    | Command (macOS)                                                                                          | Install                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Notes** | `open "orca://plugins/eliasjnior.worktree-notes?catalog=https://github.com/eliasjnior/orca-plugins.git"` | [Click here to install](https://eliasjnior.github.io/orca-plugins/install/worktree-notes/) |
 
-```sh
-open "orca://plugins/eliasjnior.worktree-notes?catalog=https://github.com/eliasjnior/orca-plugins.git"
-```
-
-Linux:
-
-```sh
-xdg-open "orca://plugins/eliasjnior.worktree-notes?catalog=https://github.com/eliasjnior/orca-plugins.git"
-```
+On Linux, replace `open` with `xdg-open`.
 
 Orca opens the plugin's page: review the access it asks for and press **Install**. Other ways to
 install are in the [repository README](../../README.md#install).
