@@ -2,13 +2,25 @@
   "manifestVersion": 2,
   "id": "worktree-notes",
   "name": "Notes",
-  "version": "1.0.0",
-  "description": "A notepad in the right sidebar that styles Markdown as you type, with separate notes for each worktree.",
+  "version": "1.1.0",
+  "description": "Notion-style Markdown notes for each worktree, in the right sidebar.",
   "author": {
     "name": "Elias Júnior"
   },
   "repository": "https://github.com/eliasjnior/orca-plugins",
   "license": "MIT",
+  "icon": "assets/icon.png",
+  "cover": {
+    "path": "assets/cover.png",
+    "alt": "The Notes panel in Orca's right sidebar, showing a release checklist with headings, tasks, a quote and code."
+  },
+  "screenshots": [
+    {
+      "path": "assets/screenshot-1.png",
+      "alt": "The Notes panel with Markdown styled as you type: a heading, checked and open tasks, a quote and a code block.",
+      "caption": "Markdown takes shape as you type, and each worktree keeps its own notes."
+    }
+  ],
   "engines": {
     "orca": ">=1.4.246"
   },
