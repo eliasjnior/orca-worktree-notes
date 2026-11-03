@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      /* Orca's UI font; frames load only the plugin's own files, so it ships in vendor/fonts. */
+      @font-face {
+        font-family: 'Geist';
+        src: url('../vendor/fonts/Geist-Variable.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      /* Same spacing and type as Orca's components panels (the Scripts panel), so the two match. */
+      :root {
+        --notes-gap: 12px;
+        /* How long a pointer rests on an icon before its tooltip opens. */
+        --tip-delay: 50ms;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        font: 14px/1.55 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: var(--orca-foreground);
+        /* The sidebar colour Orca's own panels sit on. Orca paints its app background behind HTML
+           panels and does not pass `--sidebar` to them; `--card` is the same colour in the default
+           themes (and within a shade or two in the rest). */
+        background: var(--orca-card);
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: var(--notes-gap) var(--notes-gap) 0;
+      }
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 32px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.5;
+        font-weight: 600;
+      }
+      #workspace {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--orca-muted-foreground);
+        font-size: 12px;
+        line-height: 1.33;
+      }
+      #status {
+        flex: none;
+        color: var(--orca-muted-foreground);
+        font-size: 12px;
+      }
+      /* The ⓘ beside the title and its Markdown help, styled like Orca's tooltips. */
+      .title {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .info {
+        display: flex;
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        color: var(--orca-muted-foreground);
+        opacity: 0.7;
+        cursor: default;
+        border-radius: 50%;
+        outline: none;
+      }
+      .info:hover,
+      .info:focus-visible {
+        opacity: 1;
+      }
+      .info:focus-visible {
+        box-shadow: 0 0 0 2px var(--orca-ring);
+      }
+      .tip {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 10;
+        box-sizing: border-box;
+        width: max-content;
+        max-width: min(260px, calc(100vw - 2 * var(--notes-gap)));
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: var(--orca-foreground);
+        color: var(--orca-background);
+        font-size: 12px;
+        line-height: 1.4;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.12s, visibility 0.12s;
+      }
+      .info:hover + .tip,
+      .info:focus-visible + .tip {
+        opacity: 1;
+        visibility: visible;
+        /* Opens only after a short hover, so passing over the icon does not open it. */
+        transition-delay: var(--tip-delay);
+      }
+      .tip p {
+        margin: 0;
+      }
+      .tip dl {
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 4px 12px;
+        margin: 8px 0;
+      }
+      .tip dt,
+      .tip dd {
+        margin: 0;
+      }
+      .tip code {
+        padding: 0 3px;
+        border-radius: 3px;
+        background: color-mix(in srgb, var(--orca-background) 12%, transparent);
+        font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      /* A failed save: an alert icon whose tooltip (styled like Orca's) explains it. */
+      #status.alert {
+        position: relative;
+        display: flex;
+        color: var(--orca-destructive);
+        cursor: default;
+        outline: none;
+      }
+      #status.alert::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: calc(100% + 6px);
+        right: -4px;
+        z-index: 10;
+        width: max-content;
+        max-width: 220px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: var(--orca-foreground);
+        color: var(--orca-background);
+        font-size: 12px;
+        line-height: 1.33;
+        text-wrap: balance;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.12s;
+      }
+      #status.alert:hover::after,
+      #status.alert:focus-visible::after {
+        opacity: 1;
+        transition-delay: var(--tip-delay);
+      }
+      /* While changes wait to be saved: a small, quiet ring in the same spot. */
+      #status.spinner {
+        box-sizing: border-box;
+        width: 12px;
+        height: 12px;
+        margin-right: 2px;
+        border: 1.5px solid color-mix(in srgb, var(--orca-muted-foreground) 35%, transparent);
+        border-top-color: var(--orca-muted-foreground);
+        border-radius: 50%;
+        animation: notes-spin 0.8s linear infinite;
+      }
+      @keyframes notes-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #status.spinner {
+          animation: notes-pulse 1.6s ease-in-out infinite;
+          border-top-color: color-mix(in srgb, var(--orca-muted-foreground) 35%, transparent);
+        }
+        @keyframes notes-pulse {
+          50% {
+            opacity: 0.4;
+          }
+        }
+      }
+
+      #empty {
+        margin: 32px var(--notes-gap);
+        text-align: center;
+        color: var(--orca-muted-foreground);
+      }
+
+      #editor {
+        flex: 1;
+        overflow-y: auto;
+      }
+      /* Notion-like rhythm: 8px between every pair of blocks (headings included), 4px between
+         list items, more room above headings, and children indented under their parent's text.
+         Headings use a 1.5 line height so the space below one reads like the space between
+         paragraphs (1.6). */
+      .tiptap {
+        min-height: 100%;
+        box-sizing: border-box;
+        padding: 8px var(--notes-gap) 48px;
+        outline: none;
+        word-wrap: break-word;
+        line-height: 1.6;
+      }
+      .tiptap :where(p, ul, ol, pre, blockquote, h1, h2, h3, hr) {
+        margin: 0;
+      }
+      .tiptap > * + * {
+        margin-top: 8px;
+      }
+      .tiptap p.is-editor-empty:first-child::before {
+        content: attr(data-placeholder);
+        float: left;
+        height: 0;
+        pointer-events: none;
+        /* Dimmer than secondary text, so it never reads as content. */
+        color: var(--orca-muted-foreground);
+        opacity: 0.5;
+      }
+
+      .tiptap h1,
+      .tiptap h2,
+      .tiptap h3 {
+        line-height: 1.5;
+        font-weight: 600;
+      }
+      .tiptap h1 {
+        font-size: 1.4em;
+      }
+      .tiptap h2 {
+        font-size: 1.2em;
+      }
+      .tiptap h3 {
+        font-size: 1.05em;
+      }
+      .tiptap > h1 {
+        margin-top: 24px;
+      }
+      .tiptap > h2 {
+        margin-top: 20px;
+      }
+      .tiptap > h3 {
+        margin-top: 16px;
+      }
+      .tiptap > :first-child {
+        margin-top: 0;
+      }
+
+      .tiptap a {
+        color: var(--orca-primary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
+      }
+      .tiptap code {
+        padding: 0.15em 0.35em;
+        border-radius: 4px;
+        background: var(--orca-muted);
+        font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .tiptap pre {
+        padding: 10px 12px;
+        border-radius: var(--orca-radius, 6px);
+        background: var(--orca-muted);
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+      .tiptap pre code {
+        padding: 0;
+        background: none;
+      }
+      .tiptap blockquote {
+        padding: 2px 0 2px 12px;
+        border-left: 3px solid var(--orca-border);
+        color: var(--orca-muted-foreground);
+      }
+      .tiptap blockquote > * + * {
+        margin-top: 8px;
+      }
+      .tiptap > hr {
+        margin: 16px 0;
+        border: none;
+        border-top: 1px solid var(--orca-border);
+      }
+      .tiptap hr.ProseMirror-selectednode {
+        border-top-color: var(--orca-ring);
+      }
+
+      /* Lists: a 1.25em marker column; a nested list starts where its parent's text does. */
+      .tiptap ul,
+      .tiptap ol {
+        padding-left: 1.25em;
+      }
+      .tiptap li::marker {
+        color: var(--orca-muted-foreground);
+      }
+      .tiptap li + li,
+      .tiptap li > :is(ul, ol),
+      .tiptap li > div > :is(ul, ol) {
+        margin-top: 4px;
+      }
+      .tiptap li > p + p {
+        margin-top: 4px;
+      }
+
+      /* Tasks: the checkbox column is the indent, so nested tasks need no extra padding. */
+      .tiptap ul[data-type='taskList'] {
+        list-style: none;
+        padding-left: 0;
+      }
+      .tiptap ul[data-type='taskList'] > li {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .tiptap ul[data-type='taskList'] > li > label {
+        flex: none;
+        display: flex;
+        align-items: center;
+        height: 1.6em;
+        user-select: none;
+      }
+      .tiptap ul[data-type='taskList'] > li > label input {
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        accent-color: var(--orca-primary);
+        cursor: pointer;
+      }
+      .tiptap ul[data-type='taskList'] > li > div {
+        flex: 1;
+        min-width: 0;
+      }
+      .tiptap ul[data-type='taskList'] > li[data-checked='true'] > div > p {
+        color: var(--orca-muted-foreground);
+        text-decoration: line-through;
+      }
+
+      ::selection {
+        background: color-mix(in srgb, var(--orca-primary) 30%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="title-row">
+        <div class="title">
+          <h1>Notes</h1>
+          <button type="button" class="info" aria-label="Markdown help" aria-describedby="markdown-help">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4" />
+              <path d="M12 8h.01" />
+            </svg>
+          </button>
+          <div id="markdown-help" class="tip" role="tooltip">
+            <p>Markdown is supported and styled as you type:</p>
+            <dl>
+              <dt><code>#</code> <code>##</code> <code>###</code></dt>
+              <dd>Headings</dd>
+              <dt><code>-</code> <code>1.</code></dt>
+              <dd>Lists</dd>
+              <dt><code>[]</code> <code>[x]</code></dt>
+              <dd>Tasks</dd>
+              <dt><code>&gt;</code></dt>
+              <dd>Quote</dd>
+              <dt><code>```</code></dt>
+              <dd>Code block</dd>
+              <dt><code>---</code></dt>
+              <dd>Divider</dd>
+              <dt><code>**bold**</code> <code>*italic*</code></dt>
+              <dd>Emphasis</dd>
+              <dt><code>`code`</code> <code>~~strike~~</code></dt>
+              <dd>Inline</dd>
+            </dl>
+            <p>Cmd+B, Cmd+I and Cmd+E format the selection. Cmd+click opens a link.</p>
+          </div>
+        </div>
+        <span id="status" role="status"></span>
+      </div>
+      <div id="workspace"></div>
+    </header>
+    <p id="empty">Loading notes…</p>
+    <div id="editor" hidden></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
