@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "id": "worktree-notes",
   "name": "Notes",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "A notepad in the right sidebar that styles Markdown as you type, with separate notes for each worktree.",
   "author": {
     "name": "Elias Júnior"
