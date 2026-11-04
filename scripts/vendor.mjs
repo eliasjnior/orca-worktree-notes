@@ -1,17 +1,12 @@
 #!/usr/bin/env node
-// Bundles the npm packages plugins use into single ESM files they import relatively. Orca plugins
+// Bundles the npm packages the plugin uses into single ESM files it imports relatively. Orca plugins
 // ship without node_modules and their frames load no bare imports, so these bundles are committed.
 import { readFile } from 'node:fs/promises'
 import { build } from 'esbuild'
 
 const BUNDLES = [
   {
-    out: 'plugins/script-runner/vendor/yaml.mjs',
-    packages: ['yaml'],
-    contents: "export { parse } from 'yaml'"
-  },
-  {
-    out: 'plugins/worktree-notes/vendor/tiptap.mjs',
+    out: 'vendor/tiptap.mjs',
     packages: [
       '@tiptap/core',
       '@tiptap/starter-kit',

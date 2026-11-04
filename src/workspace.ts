@@ -1,4 +1,4 @@
-// Same matching as plugins/script-runner/src/workspace.ts; plugins cannot import across folders.
+// Same matching as src/workspace.ts in eliasjnior/orca-script-runner; plugins cannot share code.
 
 /** What `workspace.readContext` answers for the focused workspace. */
 export type FocusedContext = { branch: string; displayName: string }

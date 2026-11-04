@@ -2,12 +2,12 @@
   "manifestVersion": 2,
   "id": "worktree-notes",
   "name": "Notes",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Notion-style Markdown notes for each worktree, in the right sidebar.",
   "author": {
     "name": "Elias Júnior"
   },
-  "repository": "https://github.com/eliasjnior/orca-plugins",
+  "repository": "https://github.com/eliasjnior/orca-worktree-notes",
   "license": "MIT",
   "icon": "assets/icon.png",
   "cover": {
