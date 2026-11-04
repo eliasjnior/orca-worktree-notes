@@ -3,13 +3,6 @@
   <head>
     <meta charset="utf-8" />
     <style>
-      /* Orca's UI font; frames load only the plugin's own files, so it ships in vendor/fonts. */
-      @font-face {
-        font-family: 'Geist';
-        src: url('../vendor/fonts/Geist-Variable.woff2') format('woff2');
-        font-weight: 100 900;
-        font-display: swap;
-      }
       /* Same spacing and type as Orca's components panels (the Scripts panel), so the two match. */
       :root {
         --notes-gap: 12px;
@@ -24,7 +17,7 @@
         margin: 0;
         display: flex;
         flex-direction: column;
-        font: 14px/1.55 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font: 14px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         -webkit-font-smoothing: antialiased;
         color: var(--orca-foreground);
         /* The sidebar colour Orca's own panels sit on. Orca paints its app background behind HTML

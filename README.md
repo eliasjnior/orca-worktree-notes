@@ -40,9 +40,9 @@ starts it with empty notes.
 
 - `panel/index.html` and `panel/main.ts`: an HTML panel running [Tiptap](https://tiptap.dev)
   (ProseMirror) with its Markdown extension. Its header, spacing and type match Orca's components
-  panels (such as Scripts): colours come from Orca's `--orca-*` theme variables, and Orca's Geist
-  font ships in `vendor/fonts` (SIL Open Font License) because frames load only the plugin's own
-  files. The background uses `--orca-card`: Orca paints its app background behind HTML panels and
+  panels (such as Scripts): colours come from Orca's `--orca-*` theme variables. Text uses the system
+  UI font: frames load only the plugin's own files, and Orca's plugin directory rejects bundled
+  fonts as binary files. The background uses `--orca-card`: Orca paints its app background behind HTML panels and
   does not pass them `--sidebar`, and `--card` is the sidebar colour in the default themes (within
   a shade or two in others, such as Ayu).
 - `panel/notes.ts`: loading and debounced saving per worktree, with no DOM, so it is unit-tested.
