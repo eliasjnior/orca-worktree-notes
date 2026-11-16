@@ -3,25 +3,62 @@ import * as main from './worker'
 
 const list = {
   workspaces: [
-    { id: 'a', kind: 'worktree', name: 'api', path: '/wt/api-main', branch: 'main', hostId: null },
-    { id: 'b', kind: 'worktree', name: 'api', path: '/wt/api-x', branch: 'feat/x', hostId: null }
+    {
+      id: 'identity:wt2:local:a',
+      kind: 'worktree',
+      name: 'api',
+      path: '/wt/api',
+      branch: 'main',
+      hostId: 'local'
+    },
+    {
+      id: 'identity:wt2:local:b',
+      kind: 'worktree',
+      name: 'api',
+      path: '/wt/api-x',
+      branch: 'main',
+      hostId: 'local'
+    }
   ],
   truncated: false
 }
 
-test('answers the focused worktree path', async () => {
+const context = (workspaceId: string | undefined, displayName = 'api', branch = 'main') => ({
+  ...(workspaceId ? { workspaceId } : {}),
+  branch,
+  displayName,
+  terminals: []
+})
+
+test('answers the focused workspace id, and the path its old notes were kept under', async () => {
   const host = mockHost({
     results: {
-      'workspace.readContext': { branch: 'feat/x', displayName: 'api', terminals: [] },
+      'workspace.readContext': context('identity:wt2:local:b'),
       'workspace.list': list
     }
   })
   const worker = await mountWorker(main, { host })
   assert.deepEqual(await worker.request('workspace.focused'), {
-    workspace: { path: '/wt/api-x', name: 'api', branch: 'feat/x' },
+    workspace: { id: 'identity:wt2:local:b', legacyPath: '/wt/api-x', name: 'api', branch: 'main' },
     error: null
   })
   assert.deepEqual(worker.refusals, [])
+  await worker.deactivate()
+})
+
+test('answers a workspace on a paired Orca server, which Orca does not list', async () => {
+  const id = 'b5288d53::/home/me/orca/workspaces/distribution-ui/SYC-8772'
+  const host = mockHost({
+    results: {
+      'workspace.readContext': context(id, 'SYC-8772', 'SYC-8772'),
+      'workspace.list': list
+    }
+  })
+  const worker = await mountWorker(main, { host })
+  assert.deepEqual(await worker.request('workspace.focused'), {
+    workspace: { id, legacyPath: null, name: 'SYC-8772', branch: 'SYC-8772' },
+    error: null
+  })
   await worker.deactivate()
 })
 
@@ -32,16 +69,13 @@ test('answers no workspace, or why it could not tell which', async () => {
   assert.deepEqual(await none.request('workspace.focused'), { workspace: null, error: null })
   await none.deactivate()
 
-  const unknown = await mountWorker(main, {
+  const unnamed = await mountWorker(main, {
     host: mockHost({
-      results: {
-        'workspace.readContext': { branch: 'main', displayName: 'web', terminals: [] },
-        'workspace.list': list
-      }
+      results: { 'workspace.readContext': context(undefined, 'web'), 'workspace.list': list }
     })
   })
-  const answer = await unknown.request('workspace.focused')
+  const answer = await unnamed.request('workspace.focused')
   assert.equal(answer.workspace, null)
   assert.match(answer.error ?? '', /"web"/)
-  await unknown.deactivate()
+  await unnamed.deactivate()
 })
