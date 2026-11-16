@@ -126,6 +126,16 @@ let latest = 0
 let confirmed: string | null = null
 
 /**
+ * Shows why the focused workspace has no notes and forgets the workspace open before, so that
+ * focusing it again loads its notes instead of keeping this message.
+ */
+async function showUnresolved(ticket: number, message: string): Promise<void> {
+  confirmed = null
+  await session.close()
+  if (ticket === latest) showEmpty(message)
+}
+
+/**
  * Shows the focused worktree's notes. A remembered path opens them straight from storage; the
  * worker, which may have to start first, then confirms the path (and is the only way on a miss).
  */
@@ -152,15 +162,18 @@ async function sync(context: FocusedContext | null): Promise<void> {
   try {
     answer = await orca.plugin.request('workspace.focused')
   } catch (error) {
-    if (!remembered) {
-      showEmpty(`Could not load notes: ${error instanceof Error ? error.message : String(error)}`)
+    if (!remembered && ticket === latest) {
+      const reason = error instanceof Error ? error.message : String(error)
+      await showUnresolved(ticket, `Could not load notes: ${reason}`)
     }
     return
   }
   if (ticket !== latest) return
   const { workspace } = answer
   if (!workspace || workspace.name !== context.displayName) {
-    if (!remembered) showEmpty(answer.error ?? 'Open a worktree to see its notes.')
+    if (!remembered) {
+      await showUnresolved(ticket, answer.error ?? 'Open a worktree to see its notes.')
+    }
     return
   }
   await paths.remember(context, workspace.path)
