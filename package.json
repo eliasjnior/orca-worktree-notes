@@ -31,6 +31,6 @@
     "typescript": "^7.0.2"
   },
   "config": {
-    "orcaVersion": "1.4.247"
+    "orcaVersion": "1.4.259"
   }
 }

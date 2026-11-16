@@ -18,7 +18,7 @@ separate notes for each worktree.
 
 ## Install
 
-Needs Orca 1.4.246 or newer with plugins turned on (Settings → Plugins → **Turn on plugins**).
+Needs Orca 1.4.259 or newer with plugins turned on (Settings → Plugins → **Turn on plugins**).
 
 ### From Orca's plugin directory (recommended)
 
@@ -60,9 +60,13 @@ step.
 ## Storage
 
 Notes are stored as Markdown in the plugin's own storage (`storage.json` in Orca's plugin data),
-keyed by the worktree's path. They are not written into the repository, so they never show up in
-`git status`, and renaming a worktree keeps them. Moving or recreating a worktree at another path
-starts it with empty notes.
+keyed by the id Orca gives the worktree. They are not written into the repository, so they never
+show up in `git status`, and renaming a worktree keeps them. Worktrees on a paired Orca server get
+notes too, kept in the plugin's storage on this machine. Removing and recreating a worktree gives
+it a new id and empty notes.
+
+Up to 1.2 notes were keyed by the worktree's path. The first time 1.3 opens such a worktree it
+moves those notes under the worktree's id, removing the old entry only once the copy is stored.
 
 ## How it is built
 
@@ -74,15 +78,15 @@ starts it with empty notes.
   does not pass them `--sidebar`, and `--card` is the sidebar colour in the default themes (within
   a shade or two in others, such as Ayu).
 - `panel/notes.ts`: loading and debounced saving per worktree, with no DOM, so it is unit-tested.
-- `src/worker.ts`: panels only learn the focused worktree's name and branch; the worker matches
-  that against Orca's workspace list to get its path. The panel remembers each answer, so later
-  opens load the notes straight from storage while the worker (which may have to start) confirms
-  the path in the background.
+- `src/worker.ts`: names the focused worktree's id, which Orca gives panels only when it holds no
+  path (a worktree on a paired Orca server has a raw id with its path in it), and looks up the path
+  its notes were kept under up to 1.2. Notes already stored under an id the panel knows open
+  straight from storage, without waiting for the worker to start.
 - `vendor/tiptap.mjs`: Tiptap bundled into one file by `pnpm vendor` (frames load no npm packages).
 
 ## Access
 
-- Runs a Node worker, only to look up the focused worktree's path.
+- Runs a Node worker, only to look up the focused worktree's id and path.
 - `workspace:read`: know which worktree is focused.
 - `storage:own`: keep the notes.
 

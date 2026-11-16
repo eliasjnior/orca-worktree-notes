@@ -2,7 +2,7 @@
 // document per worktree.
 import type { FocusedAnswer } from '../src/protocol'
 import { Editor, Markdown, Placeholder, StarterKit, TaskItem, TaskList } from '../vendor/tiptap.mjs'
-import { type FocusedContext, NotesSession, PathCache, type SaveState } from './notes'
+import { NotesSession, type NotesTarget, type SaveState } from './notes'
 
 // Spellcheck and hyphenation follow Orca's UI language.
 document.documentElement.lang = orca.locale || 'en'
@@ -106,12 +106,10 @@ function showEmpty(message: string): void {
   showSaveState(null)
 }
 
-const paths = new PathCache(orca.storage)
-
-async function openNotes(path: string): Promise<void> {
-  if (session.path === path) return
+async function openNotes(target: NotesTarget): Promise<void> {
+  if (session.id === target.id) return
   editor.setEditable(false, false)
-  const markdown = await session.open(path)
+  const markdown = await session.open(target)
   if (markdown === null) return // A later focus change won.
   show(markdown)
   emptyState.hidden = true
@@ -120,9 +118,12 @@ async function openNotes(path: string): Promise<void> {
   showSaveState(null)
 }
 
+/** What `workspace.changed` reports; `workspaceId` is absent for a paired Orca server's workspace. */
+type FocusedContext = { workspaceId?: string; displayName: string; branch: string }
+
 /** Bumped on every focus change, so a slower answer for an older one is dropped. */
 let latest = 0
-/** The workspace name and branch the open notes were confirmed for. */
+/** The workspace the open notes were confirmed for. */
 let confirmed: string | null = null
 
 /**
@@ -136,50 +137,51 @@ async function showUnresolved(ticket: number, message: string): Promise<void> {
 }
 
 /**
- * Shows the focused worktree's notes. A remembered path opens them straight from storage; the
- * worker, which may have to start first, then confirms the path (and is the only way on a miss).
+ * Shows the focused workspace's notes, keyed by its id. Notes already stored under an id the panel
+ * knows open straight from storage. Otherwise the worker, which may have to start first, names the
+ * id (the panel does not get it for a workspace on a paired Orca server) and the path any older
+ * notes were kept under, so they come along.
  */
 async function sync(context: FocusedContext | null): Promise<void> {
   const ticket = ++latest
   if (!context) {
-    confirmed = null
-    await session.close()
-    showEmpty('Open a worktree to see its notes.')
+    await showUnresolved(ticket, 'Open a worktree to see its notes.')
     return
   }
-  const contextId = `${context.displayName}\n${context.branch}`
+  const contextId = `${context.workspaceId ?? ''}\n${context.displayName}\n${context.branch}`
   // Terminals opening or closing re-send the same workspace: nothing to do.
-  if (contextId === confirmed && session.path) return
+  if (contextId === confirmed && session.id) return
   workspaceLabel.textContent = context.branch
     ? `${context.displayName} · ${context.branch}`
     : context.displayName
 
-  const remembered = await paths.get(context)
-  if (ticket !== latest) return
-  if (remembered) await openNotes(remembered)
+  const known = context.workspaceId
+  if (known && (await session.has(known))) {
+    if (ticket !== latest) return
+    confirmed = contextId
+    await openNotes({ id: known })
+    return
+  }
 
   let answer: FocusedAnswer
   try {
     answer = await orca.plugin.request('workspace.focused')
   } catch (error) {
-    if (!remembered && ticket === latest) {
-      const reason = error instanceof Error ? error.message : String(error)
-      await showUnresolved(ticket, `Could not load notes: ${reason}`)
-    }
+    if (ticket !== latest) return
+    const reason = error instanceof Error ? error.message : String(error)
+    await showUnresolved(ticket, `Could not load notes: ${reason}`)
     return
   }
   if (ticket !== latest) return
   const { workspace } = answer
-  if (!workspace || workspace.name !== context.displayName) {
-    if (!remembered) {
-      await showUnresolved(ticket, answer.error ?? 'Open a worktree to see its notes.')
-    }
+  // The worker read the focus later than this event: drop an answer about another workspace.
+  const same = known ? workspace?.id === known : workspace?.name === context.displayName
+  if (!workspace || !same) {
+    await showUnresolved(ticket, answer.error ?? 'Open a worktree to see its notes.')
     return
   }
-  await paths.remember(context, workspace.path)
-  if (ticket !== latest) return
   confirmed = contextId
-  await openNotes(workspace.path)
+  await openNotes({ id: workspace.id, legacyPath: workspace.legacyPath })
 }
 
 // Fires once with the current workspace as it subscribes, then on every focus change (and when
