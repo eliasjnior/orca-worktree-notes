@@ -136,12 +136,18 @@ The repository root is the plugin, so Orca installs every tracked file in it. Or
 directory lists the newest `vX.Y.Z` tag, pinned to its commit and file hash, and a listed version
 never changes. `main` only takes pull requests, squash-merged.
 
-1. Raise `version` in `orca-plugin.json`, open a pull request and merge it.
-2. Tag the merged `main` commit with that version and push the tag:
+1. Raise `version` in `orca-plugin.json`, add its section to `CHANGELOG.md`, open a pull request
+   and merge it.
+2. Tag the merged `main` commit with that version, push the tag, and publish a GitHub release with
+   that version's section of the changelog as its notes:
 
    ```sh
    git switch main && git pull
-   git tag -a v1.2.0 -m v1.2.0 && git push origin v1.2.0
+   version=1.3.0
+   git tag -a "v$version" -m "v$version" && git push origin "v$version"
+   awk -v heading="## [$version]" 'index($0, heading) == 1 { found = 1; next }
+     found && /^## / { exit } found' CHANGELOG.md |
+     gh release create "v$version" --title "v$version" --notes-file - --verify-tag
    ```
 
 The directory checks tags about every 30 minutes. A new version can wait for a maintainer's review
