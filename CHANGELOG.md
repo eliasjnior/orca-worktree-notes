@@ -4,6 +4,8 @@ Notable changes to Notes, newest first. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 ## [1.3.0] - 2026-11-16
 
 ### Fixed
@@ -66,5 +68,6 @@ Notable changes to Notes, newest first. The format follows
 
 Versions up to 1.1.2 were released from `eliasjnior/orca-plugins`, which has since been deleted.
 
+[Unreleased]: https://github.com/eliasjnior/orca-worktree-notes/compare/v1.3.0...HEAD
 [1.3.0]: https://github.com/eliasjnior/orca-worktree-notes/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/eliasjnior/orca-worktree-notes/releases/tag/v1.2.0
